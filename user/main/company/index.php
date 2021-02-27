@@ -36,17 +36,17 @@ if (!empty($_POST["add_company_btn"])) {
       $deadlineTime = null;
       $completed = "0";
 
-      if (!empty($_POST["start_year"][$i])) {
-        $startDate = "{$_POST['start_year'][$i]}-{$_POST['start_month'][$i]}-{$_POST['start_date'][$i]}";
-        $startTime = "{$_POST['start_hour'][$i]}:{$_POST['start_minute'][$i]}:00";
+      if (!empty($_POST["startDate"][$i])) {
+        $startDate = $_POST["startDate"][$i];
+        $startTime = $_POST["startTime"][$i];
       }
-      if (!empty($_POST["end_year"][$i])) {
-        $endDate = "{$_POST['end_year'][$i]}-{$_POST['end_month'][$i]}-{$_POST['end_date'][$i]}";
-        $endTime = "{$_POST['end_hour'][$i]}:{$_POST['end_minute'][$i]}:00";
+      if (!empty($_POST["endDate"][$i])) {
+        $endDate = $_POST["endDate"][$i];
+        $endTime = $_POST["endTime"][$i];
       }
-      if (!empty($_POST["deadline_year"][$i])) {
-        $deadlineDate = "{$_POST['deadline_year'][$i]}-{$_POST['deadline_month'][$i]}-{$_POST['deadline_date'][$i]}";
-        $deadlineTime = "{$_POST['deadline_hour'][$i]}:{$_POST['deadline_minute'][$i]}:00";
+      if (!empty($_POST["deadlineDate"][$i])) {
+        $deadlineDate = $_POST["deadlineDate"][$i];
+        $deadlineTime = $_POST["deadlineTime"][$i];
       }
       if (!empty($_POST["completed"][$i])) {
         $completed = "1";
@@ -101,7 +101,7 @@ $companies = array_merge($companiesa, $companiesb);
 
 // var_dump($companies);
 
-$minutes_list =  array("00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55");
+// $minutes_list =  array("00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55");
 ?>
 
 <!DOCTYPE html>
@@ -148,6 +148,9 @@ td .table-btn {
   border-collapse: collapse;
   margin: 10px 0;
 }
+input[type=checkbox] {
+  transform: scale(1.5);
+}
 </style>
 
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
@@ -162,6 +165,7 @@ td .table-btn {
       form.style.display = "block";
       btn.style.display = "none";
     }
+    location.href = "#create_company_form";
   }
 
   function delete_company(name) {
@@ -186,16 +190,21 @@ td .table-btn {
   </header>
 
   <h1>企業一覧</h1>
-  <div class="container">
-    <div class="row">
-      <table class="p-0 col-lg-9 col-md-12 col-sm-12 col-xs-12 container table table-bordered table-striped bg-light">
+
+  <p>
+    <button type="button" class="btn btn-light" id="create_company_btn" name="button" onclick="display_create_company_form()">企業を追加する</button>
+  </p>
+
+  <div class="">
+    <div class="">
+      <table class="p-0 container table table-bordered table-striped bg-light">
         <tr class="row m-0">
-          <th class="col-lg-2 col-md-2 col-sm-4 col-xs-6">会社名</th>
-          <th class="col-lg-2 col-md-2 col-sm-4 col-xs-6">次回選考</th>
-          <th class="col-lg-2 col-md-2 col-sm-4 col-xs-6">日時</th>
-          <th class="col-lg-2 col-md-2 col-sm-4 col-xs-6 table-mypage">マイページ</th>
-          <th class="col-lg-2 col-md-2 col-sm-4 col-xs-6 table-detail">詳細／編集</th>
-          <th class="col-lg-2 col-md-2 col-sm-4 col-xs-6 table-delete">削除</th>
+          <th class="col-lg-2 col-md-2 col-sm-4 col-6">会社名</th>
+          <th class="col-lg-2 col-md-2 col-sm-4 col-6">次回選考</th>
+          <th class="col-lg-2 col-md-2 col-sm-4 col-6">日時</th>
+          <th class="col-lg-2 col-md-2 col-sm-4 col-6 table-mypage">マイページ</th>
+          <th class="col-lg-2 col-md-2 col-sm-4 col-6 table-detail">詳細／編集</th>
+          <th class="col-lg-2 col-md-2 col-sm-4 col-6 table-delete">削除</th>
         </tr>
         <?php
         $temp = array(); //既に表示された会社のidを保存
@@ -203,9 +212,9 @@ td .table-btn {
           if (empty($temp[$value["id"]])): //既に表示された会社は表示しない
         ?>
         <tr class="row m-0">
-          <td class="col-lg-2 col-md-2 col-sm-4 col-xs-6"><?php echo $value["name"]; ?></td>
-          <td class="col-lg-2 col-md-2 col-sm-4 col-xs-6"><?php echo $value["event"]; ?></td>
-          <td class="col-lg-2 col-md-2 col-sm-4 col-xs-6">
+          <td class="col-lg-2 col-md-2 col-sm-4 col-6"><?php echo $value["name"]; ?></td>
+          <td class="col-lg-2 col-md-2 col-sm-4 col-6"><?php echo $value["event"]; ?></td>
+          <td class="col-lg-2 col-md-2 col-sm-4 col-6">
             <?php
             if (!empty($value["startDate"])) {
               echo date("m/d", strtotime($value["startDate"]))."<br>";
@@ -219,18 +228,18 @@ td .table-btn {
             }
             ?>
           </td>
-          <td class="col-lg-2 col-md-2 col-sm-4 col-xs-6 table-mypage btn-content">
+          <td class="col-lg-2 col-md-2 col-sm-4 col-6 table-mypage btn-content">
             <?php if (!empty($value["URL"])) : ?>
             <a class="btn btn-primary table-btn" href="<?php echo $value["URL"]; ?>" target="_blank" rel="noopener noreferrer">マイページ</a>
             <?php endif; ?>
           </td>
-          <td class="col-lg-2 col-md-2 col-sm-4 col-xs-6 table-detail btn-content">
+          <td class="col-lg-2 col-md-2 col-sm-4 col-6 table-detail btn-content">
             <form action="./detail/" method="post">
               <input type="hidden" name="companies_id" value="<?php echo $value["id"]; ?>">
               <button class="btn btn-dark table-btn" type="submit" name="button">詳細</button>
             </form>
           </td>
-          <td class="col-lg-2 col-md-2 col-sm-4 col-xs-6 table-delete btn-content">
+          <td class="col-lg-2 col-md-2 col-sm-4 col-6 table-delete btn-content">
             <form action="" method="post">
               <input type="hidden" name="companies_id" value="<?php echo $value["id"]; ?>">
               <input class="btn btn-danger table-btn" type="submit" name="delete_company_btn" value="削除" onclick="return delete_company('<?php echo $value["name"]; ?>')">
@@ -244,10 +253,10 @@ td .table-btn {
         ?>
       </table>
 
-      <div class="col-lg-3 col-md-12 col-sm-12 col-xs-12">
-        <p>
+      <div class="container">
+        <!-- <p>
           <button type="button" class="btn btn-light" id="create_company_btn" name="button" onclick="display_create_company_form()">企業を追加する</button>
-        </p>
+        </p> -->
 
         <div id="create_company_form" class="bg-light">
 
@@ -292,134 +301,14 @@ td .table-btn {
 
               <div class="m-2">
                 開始日時
-                <select class="" name="start_year[0]">
-                  <?php
-                  for ($year_index = $year-2; $year_index < $year+10; $year_index++) {
-                    echo "<option value=".$year_index;
-                    if ($year_index == $year) {
-                      echo " selected";
-                    }
-                    echo ">";
-                    echo $year_index;
-                    echo "</option>";
-                  }
-                  ?>
-                </select>
-                年
-                <select class="" name="start_month[0]">
-                  <?php
-                  for ($month_index = 1; $month_index <= 12; $month_index++) {
-                    echo "<option value=".$month_index;
-                    if ($month_index == $month) {
-                      echo " selected";
-                    }
-                    echo ">";
-                    echo $month_index;
-                    echo "</option>";
-                  }
-                  ?>
-                </select>
-                月
-                <select class="" name="start_date[0]">
-                  <?php
-                  for ($date_index = 1; $date_index <= 31; $date_index++) {
-                    echo "<option value=".$date_index;
-                    if ($date_index == $date) {
-                      echo " selected";
-                    }
-                    echo ">";
-                    echo $date_index;
-                    echo "</option>";
-                  }
-                  ?>
-                </select>
-                日
-                <select class="" name="start_hour[0]">
-                  <?php
-                  for ($hour_index = 0; $hour_index <= 23; $hour_index++) {
-                    echo "<option value=".$hour_index.">";
-                    echo $hour_index;
-                    echo "</option>";
-                  }
-                  ?>
-                </select>
-                時
-                <select class="" name="start_minute[0]">
-                  <?php
-                  foreach ($minutes_list as $value) {
-                    echo "<option value=".$value.">";
-                    echo $value;
-                    echo "</option>";
-                  }
-                  ?>
-                </select>
-                分
+                <input type="date" name="startDate[0]">
+                <input type="time" name="startTime[0]">
               </div>
 
               <div class="m-2">
                 終了日時
-                <select class="" name="end_year[0]">
-                  <?php
-                  for ($year_index = $year-2; $year_index < $year+10; $year_index++) {
-                    echo "<option value=".$year_index;
-                    if ($year_index == $year) {
-                      echo " selected";
-                    }
-                    echo ">";
-                    echo $year_index;
-                    echo "</option>";
-                  }
-                  ?>
-                </select>
-                年
-                <select class="" name="end_month[0]">
-                  <?php
-                  for ($month_index = 1; $month_index <= 12; $month_index++) {
-                    echo "<option value=".$month_index;
-                    if ($month_index == $month) {
-                      echo " selected";
-                    }
-                    echo ">";
-                    echo $month_index;
-                    echo "</option>";
-                  }
-                  ?>
-                </select>
-                月
-                <select class="" name="end_date[0]">
-                  <?php
-                  for ($date_index = 1; $date_index <= 31; $date_index++) {
-                    echo "<option value=".$date_index;
-                    if ($date_index == $date) {
-                      echo " selected";
-                    }
-                    echo ">";
-                    echo $date_index;
-                    echo "</option>";
-                  }
-                  ?>
-                </select>
-                日
-                <select class="" name="end_hour[0]">
-                  <?php
-                  for ($hour_index = 0; $hour_index <= 23; $hour_index++) {
-                    echo "<option value=".$hour_index.">";
-                    echo $hour_index;
-                    echo "</option>";
-                  }
-                  ?>
-                </select>
-                時
-                <select class="" name="end_minute[0]">
-                  <?php
-                  foreach ($minutes_list as $value) {
-                    echo "<option value=".$value.">";
-                    echo $value;
-                    echo "</option>";
-                  }
-                  ?>
-                </select>
-                分
+                <input type="date" name="endDate[0]">
+                <input type="time" name="endTime[0]">
               </div>
 
               <div class="m-2">
@@ -428,51 +317,8 @@ td .table-btn {
 
               <div class="m-2">
                 締切日時
-                <select class="" name="deadline_year[0]" disabled>
-                  <?php
-                  echo "<option value=''></option>";
-                  for ($year_index = $year - 2; $year_index <= $year + 10; $year_index++) {
-                    echo "<option value='{$year_index}'>{$year_index}</option>";
-                  }
-                  ?>
-                </select>
-                年
-                <select class="" name="deadline_month[0]" disabled>
-                  <?php
-                  echo "<option value=''></option>";
-                  for ($month_index = 1; $month_index <= 12; $month_index++) {
-                    echo "<option value='{$month_index}'>{$month_index}</option>";
-                  }
-                  ?>
-                </select>
-                月
-                <select class="" name="deadline_date[0]" disabled>
-                  <?php
-                  echo "<option value=''></option>";
-                  for ($day_index = 1; $day_index <= 31 ; $day_index++) {
-                    echo "<option value='{$day_index}'>{$day_index}</option>";
-                  }
-                  ?>
-                </select>
-                日
-                <select class="" name="deadline_hour[0]" disabled>
-                  <?php
-                  echo "<option value=''></option>";
-                  for ($hour_index = 0; $hour_index < 24 ; $hour_index++) {
-                    echo "<option value='{$hour_index}'>{$hour_index}</option>";
-                  }
-                  ?>
-                </select>
-                時
-                <select class="" name="deadline_minute[0]" disabled>
-                  <?php
-                  echo "<option value=''></option>";
-                  foreach ($minutes_list as $value) {
-                    echo "<option value='{$value}'>{$value}</option>";
-                  }
-                  ?>
-                </select>
-                分
+                <input type="date" name="deadlineDate[0]" disabled>
+                <input type="time" name="deadlineTime[0]" disabled>
               </div>
 
               <div class="m-2">
@@ -517,58 +363,59 @@ td .table-btn {
     let forms = document.getElementById("event_form");
     let dummy = document.getElementById("event_form_dummy");
     const clone = dummy.cloneNode(true);
-    //console.log(clone);
-    clone.id = "event_form_dummy" + i;
-    clone.style.display = "block";
+    const form_num = forms.childElementCount;
+    const max = 20;
+    if (form_num < max) {
+      //予定の数は1社につき20個まで
+      clone.id = "event_form_dummy" + i;
+      clone.style.display = "block";
 
-    eventName = clone.children[0];
-    start = clone.children[1];
-    end = clone.children[2];
-    check = clone.children[3];
-    deadline = clone.children[4];
-    undecided = clone.children[5];
-    orderNum = clone.children[6];
-    completedCheck = clone.children[7];
-    remove = clone.children[8];
+      eventName = clone.children[0];
+      start = clone.children[1];
+      end = clone.children[2];
+      check = clone.children[3];
+      deadline = clone.children[4];
+      undecided = clone.children[5];
+      orderNum = clone.children[6];
+      completedCheck = clone.children[7];
+      remove = clone.children[8];
 
-    eventName.children["event[0]"].name = "event["+ i +"]";
+      eventName.children["event[0]"].required = true;
+      eventName.children["event[0]"].name = "event["+ i +"]";
 
-    start.children["start_year[0]"].name = "start_year["+ i +"]";
-    start.children["start_month[0]"].name = "start_month["+ i +"]";
-    start.children["start_date[0]"].name = "start_date["+ i +"]";
-    start.children["start_hour[0]"].name = "start_hour["+ i +"]";
-    start.children["start_minute[0]"].name = "start_minute["+ i +"]";
+      start.getElementsByTagName("input")[0].name = "startDate["+ i +"]";
+      start.getElementsByTagName("input")[1].name = "startTime["+ i +"]";
 
-    end.children["end_year[0]"].name = "end_year["+ i +"]";
-    end.children["end_month[0]"].name = "end_month["+ i +"]";
-    end.children["end_date[0]"].name = "end_date["+ i +"]";
-    end.children["end_hour[0]"].name = "end_hour["+ i +"]";
-    end.children["end_minute[0]"].name = "end_minute["+ i +"]";
+      end.getElementsByTagName("input")[0].name = "endDate["+ i +"]";
+      end.getElementsByTagName("input")[1].name = "endTime["+ i +"]";
 
-    // clone.children[3].getElementsByTagName("input")[0].name = "deadline["+ i +"]";
-    check.getElementsByTagName("input")[0].dataset.index = i;
+      // clone.children[3].getElementsByTagName("input")[0].name = "deadline["+ i +"]";
+      check.getElementsByTagName("input")[0].dataset.index = i;
 
-    deadline.children["deadline_year[0]"].name = "deadline_year["+ i +"]";
-    deadline.children["deadline_month[0]"].name = "deadline_month["+ i +"]";
-    deadline.children["deadline_date[0]"].name = "deadline_date["+ i +"]";
-    deadline.children["deadline_hour[0]"].name = "deadline_hour["+ i +"]";
-    deadline.children["deadline_minute[0]"].name = "deadline_minute["+ i +"]";
+      deadline.getElementsByTagName("input")[0].name = "deadlineDate["+ i +"]";
+      deadline.getElementsByTagName("input")[1].name = "deadlineTime["+ i +"]";
 
-    // clone.children[5].getElementsByTagName("input")[0].name = "undecided["+ i +"]";
-    undecided.getElementsByTagName("input")[0].dataset.index = i;
+      // clone.children[5].getElementsByTagName("input")[0].name = "undecided["+ i +"]";
+      undecided.getElementsByTagName("input")[0].dataset.index = i;
 
-    orderNum.getElementsByTagName("input")[0].value = i;
-    orderNum.getElementsByTagName("input")[0].name = "order["+ i +"]";
+      orderNum.getElementsByTagName("input")[0].value = i;
+      orderNum.getElementsByTagName("input")[0].name = "order["+ i +"]";
 
-    completedCheck.getElementsByTagName("input")[0].name = "completed["+ i +"]";
+      completedCheck.getElementsByTagName("input")[0].name = "completed["+ i +"]";
 
-    remove.children["remove"].dataset.index = i;
+      remove.children["remove"].dataset.index = i;
 
-    child = forms.appendChild(clone);
+      child = forms.appendChild(clone);
 
-    const index = document.getElementById("index");
-    index.value = i;
-    i++;
+      const index = document.getElementById("index");
+      index.value = i;
+      i++;
+
+      location.href = "#add_event_form_btn";
+    } else {
+      alert("登録できるイベントの数は1社につき" + max + "個までです");
+    }
+
   });
 
   function remove_event(e) {
@@ -580,6 +427,7 @@ td .table-btn {
   }
 
   function deadlineCheck(e) {
+
     let deadline = e.currentTarget;
     let changedIndex = deadline.dataset.index;
     let form = document.getElementById("event_form_dummy" + changedIndex);
@@ -587,45 +435,28 @@ td .table-btn {
 
     if (deadline.checked) {
       //開始日時・終了日時をdisabledにし、締切日時を操作可能に
-      document.getElementsByName("start_year[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("start_month[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("start_date[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("start_hour[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("start_minute[" + changedIndex + "]")[0].disabled = true;
+      document.getElementsByName("startDate[" + changedIndex + "]")[0].disabled = true;
+      document.getElementsByName("startTime[" + changedIndex + "]")[0].disabled = true;
 
-      document.getElementsByName("end_year[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("end_month[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("end_date[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("end_hour[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("end_minute[" + changedIndex + "]")[0].disabled = true;
+      document.getElementsByName("endDate[" + changedIndex + "]")[0].disabled = true;
+      document.getElementsByName("endTime[" + changedIndex + "]")[0].disabled = true;
 
-      document.getElementsByName("deadline_year[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("deadline_month[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("deadline_date[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("deadline_hour[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("deadline_minute[" + changedIndex + "]")[0].disabled = false;
+      document.getElementsByName("deadlineDate[" + changedIndex + "]")[0].disabled = false;
+      document.getElementsByName("deadlineTime[" + changedIndex + "]")[0].disabled = false;
 
       undecided.disabled = false;
     } else {
-      document.getElementsByName("start_year[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("start_month[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("start_date[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("start_hour[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("start_minute[" + changedIndex + "]")[0].disabled = false;
+      document.getElementsByName("startDate[" + changedIndex + "]")[0].disabled = false;
+      document.getElementsByName("startTime[" + changedIndex + "]")[0].disabled = false;
 
-      document.getElementsByName("end_year[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("end_month[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("end_date[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("end_hour[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("end_minute[" + changedIndex + "]")[0].disabled = false;
+      document.getElementsByName("endDate[" + changedIndex + "]")[0].disabled = false;
+      document.getElementsByName("endTime[" + changedIndex + "]")[0].disabled = false;
 
-      document.getElementsByName("deadline_year[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("deadline_month[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("deadline_date[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("deadline_hour[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("deadline_minute[" + changedIndex + "]")[0].disabled = true;
+      document.getElementsByName("deadlineDate[" + changedIndex + "]")[0].disabled = true;
+      document.getElementsByName("deadlineTime[" + changedIndex + "]")[0].disabled = true;
 
-      undecided.disabled = false;
+      undecided.disabled = true;
+      undecided.checked = false;
     }
 
   }
@@ -638,17 +469,11 @@ td .table-btn {
     let deadline = form.children[3].getElementsByTagName("input")[0];
 
     if (undecided.checked) {
-      document.getElementsByName("deadline_year[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("deadline_month[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("deadline_date[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("deadline_hour[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("deadline_minute[" + changedIndex + "]")[0].disabled = true;
+      document.getElementsByName("deadlineDate[" + changedIndex + "]")[0].disabled = true;
+      document.getElementsByName("deadlineTime[" + changedIndex + "]")[0].disabled = true;
     } else if (deadline.checked) {
-      document.getElementsByName("deadline_year[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("deadline_month[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("deadline_date[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("deadline_hour[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("deadline_minute[" + changedIndex + "]")[0].disabled = false;
+      document.getElementsByName("deadlineDate[" + changedIndex + "]")[0].disabled = false;
+      document.getElementsByName("deadlineTime[" + changedIndex + "]")[0].disabled = false;
     }
 
   }

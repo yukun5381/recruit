@@ -16,20 +16,38 @@ $companies_id = "";
 //予定登録フォームに入力した内容を保存
 
 if (!empty($_POST["edit"])) {
-  if (!empty($_POST["start_year"])) {
-    $startDate = "{$_POST['start_year']}-{$_POST['start_month']}-{$_POST['start_date']}";
-    $startTime = "{$_POST['start_hour']}:{$_POST['start_minute']}:00";
+  $startDate = null;
+  $startTime = null;
+  $endDate = null;
+  $endTime = null;
+  $deadlineDate = null;
+  $deadlineTime = null;
+  if (!empty($_POST["startDate"])) {
+    $startDate = $_POST["startDate"];
+    $startTime = $_POST["startTime"];
   }
-  if (!empty($_POST["end_year"])) {
-    $endDate = "{$_POST['end_year']}-{$_POST['end_month']}-{$_POST['end_date']}";
-    $endTime = "{$_POST['end_hour']}:{$_POST['end_minute']}:00";
+  if (!empty($_POST["endDate"])) {
+    $endDate = $_POST["endDate"];
+    $endTime = $_POST["endTime"];
   }
-  if (!empty($_POST["deadline_year"])) {
-    $deadlineDate = "{$_POST['deadline_year']}-{$_POST['deadline_month']}-{$_POST['deadline_date']}";
-    $deadlineTime = "{$_POST['deadline_hour']}:{$_POST['deadline_minute']}:00";
+  if (!empty($_POST["deadlineDate"])) {
+    $deadlineDate = $_POST["deadlineDate"];
+    $deadlineTime = $_POST["deadlineTime"];
   }
+  //すでに存在する予定のorderNumの最大値を取得
+  $sql = $pdo -> prepare("SELECT companies.id, MAX(plans.orderNum) as num FROM plans JOIN companies ON plans.companies_id = companies.id WHERE companies.id = :companies_id GROUP BY companies.id");
+  $sql -> bindParam(":companies_id", $_POST["companies_id"], PDO::PARAM_STR);
+  $sql -> execute();
+  $data = $sql -> fetch();
+  //その最大値＋１をフォームに入力した予定のorderNumとする
+  if (!empty($data)) {
+    $orderNum = $data["num"] + 1;
+  } else {
+    $orderNum = 1;
+  }
+
   if (empty($_POST["edit_plans_id"])) { //新規作成のとき
-    $sql = $pdo -> prepare("INSERT INTO plans (users_id, companies_id, event, detail, startDate, startTime, endDate, endTime, deadlineDate, deadlineTime) VALUES (:users_id, :companies_id, :event, :detail, :startDate, :startTime, :endDate, :endTime, :deadlineDate, :deadlineTime)");
+    $sql = $pdo -> prepare("INSERT INTO plans (users_id, companies_id, event, detail, startDate, startTime, endDate, endTime, deadlineDate, deadlineTime, orderNum) VALUES (:users_id, :companies_id, :event, :detail, :startDate, :startTime, :endDate, :endTime, :deadlineDate, :deadlineTime, :orderNum)");
     $sql -> bindParam(":users_id", $_SESSION["id"], PDO::PARAM_STR);
     $sql -> bindParam(":companies_id", $_POST["companies_id"], PDO::PARAM_STR);
     $sql -> bindParam(":event", $_POST["event"], PDO::PARAM_STR);
@@ -40,6 +58,7 @@ if (!empty($_POST["edit"])) {
     $sql -> bindParam(":endTime", $endTime, PDO::PARAM_STR);
     $sql -> bindParam(":deadlineDate", $deadlineDate, PDO::PARAM_STR);
     $sql -> bindParam(":deadlineTime", $deadlineTime, PDO::PARAM_STR);
+    $sql -> bindParam(":orderNum", $orderNum, PDO::PARAM_STR);
     $sql -> execute();
     if ($sql) {
       $info = "予定を登録しました";
@@ -47,7 +66,7 @@ if (!empty($_POST["edit"])) {
       $info = "予定の登録に失敗しました";
     }
   } else { //編集のとき
-    $sql = $pdo -> prepare("UPDATE plans SET users_id = :users_id, companies_id = :companies_id, event = :event, detail = :detail, startDate = :startDate, startTime = :startTime, endDate = :endDate, endTime = :endTime, deadlineDate = :deadlineDate, deadlineTime = :deadlineTime WHERE id = :plans_id");
+    $sql = $pdo -> prepare("UPDATE plans SET users_id = :users_id, companies_id = :companies_id, event = :event, detail = :detail, startDate = :startDate, startTime = :startTime, endDate = :endDate, endTime = :endTime, deadlineDate = :deadlineDate, deadlineTime = :deadlineTime, orderNum = :orderNum WHERE id = :plans_id");
     $sql -> bindParam(":users_id", $_SESSION["id"], PDO::PARAM_STR);
     $sql -> bindParam(":companies_id", $_POST["companies_id"], PDO::PARAM_STR);
     $sql -> bindParam(":event", $_POST["event"], PDO::PARAM_STR);
@@ -59,6 +78,7 @@ if (!empty($_POST["edit"])) {
     $sql -> bindParam(":deadlineDate", $deadlineDate, PDO::PARAM_STR);
     $sql -> bindParam(":deadlineTime", $deadlineTime, PDO::PARAM_STR);
     $sql -> bindParam(":plans_id", $_POST["edit_plans_id"], PDO::PARAM_STR);
+    $sql -> bindParam(":orderNum", $orderNum, PDO::PARAM_STR);
     $sql -> execute();
     if ($sql) {
       $info = "予定を編集しました";
@@ -99,9 +119,10 @@ if (!empty($_POST["year"]) && !empty($_POST["month"])) {
 } else {
 //現在の年月を取得
 $year = date("Y");
-$month = date("n");
+$month = date("m"); //2桁
 //$month = 2;
 }
+$month = sprintf("%02d", $month);
 
 //画面遷移用に前月と次月の情報を定義
 $year_of_previous_month = $year;
@@ -148,7 +169,7 @@ for ($i=1; $i <= $last_day; $i++) {
     }
 
     // 配列に日付をセット
-    $calendar[$j]['day'] = $i;
+    $calendar[$j]['day'] = sprintf("%02d", $i);
     $j++;
 
     // 月末日の場合
@@ -168,38 +189,10 @@ for ($i=1; $i <= $last_day; $i++) {
 
 //表示するための予定を取得
 $plans = array();
-/*
-$day_index = 15;
-for ($day_index=1; $day_index <= $last_day; $day_index++) {
-  //DBからユーザー・年・月・日が一致する予定情報($result)を取得、インデックスは適当
-  $sql = $pdo -> prepare("SELECT plans.*, companies.name, companies.occupation FROM plans LEFT JOIN companies ON plans.companies_id = companies.id WHERE start_year = :start_year AND start_month = :start_month AND start_date = :start_date AND plans.users_id = :users_id");
-  $sql -> bindParam(":start_year", $year, PDO::PARAM_STR);
-  $sql -> bindParam(":start_month", $month, PDO::PARAM_STR);
-  $sql -> bindParam(":start_date", $day_index, PDO::PARAM_STR);
-  $sql -> bindParam(":users_id", $_SESSION["id"], PDO::PARAM_STR);
-  $sql -> execute();
-  if (!$sql) {
-    $info = "予定情報の取得に失敗しました";
-  }
-  $plans[$day_index] = $sql -> fetchAll();
 
-  $plans[1][0] = array(
-    "event" => "説明会",
-    "company" => "A社",
-    "start_time" => "13:00",
-    "end_time" => "15:00"
-  ); //$plans[日付][順番]
-
-}
-*/
 //DBからユーザー・年・月・日が一致する予定情報($result)を取得、インデックスは適当
-if ($month < 10) {
-  $startDate1 = "{$year}-0{$month}-01";
-  $startDate2 = "{$year}-0{$month}-{$last_day}";
-} else {
-  $startDate1 = "{$year}-{$month}-01";
-  $startDate2 = "{$year}-{$month}-{$last_day}";
-}
+$startDate1 = "{$year}-{$month}-01";
+$startDate2 = "{$year}-{$month}-{$last_day}";
 
 $sql = $pdo -> prepare("SELECT plans.*, companies.name, companies.occupation FROM plans LEFT JOIN companies ON plans.companies_id = companies.id WHERE plans.startDate >= :startDate1 AND plans.startDate <= :startDate2 AND plans.users_id = :users_id ORDER BY plans.startDate, plans.StartTime");
 $sql -> bindParam(":startDate1", $startDate1, PDO::PARAM_STR);
@@ -232,19 +225,18 @@ if (!empty($_POST["plans_id"])) {
     $info = "編集する予定情報の取得に失敗しました";
   }
   $edit_plan = $sql -> fetch();
-  $edit_plan["start_date"] = idate("d", strtotime($edit_plan["startDate"]));
-  $edit_plan["start_hour"] = idate("H", strtotime($edit_plan["startTime"]));
-  $edit_plan["start_minute"] = date("i", strtotime($edit_plan["startTime"]));
-  $edit_plan["end_date"] = idate("d", strtotime($edit_plan["endDate"]));
-  $edit_plan["end_hour"] = idate("H", strtotime($edit_plan["endTime"]));
-  $edit_plan["end_minute"] = date("i", strtotime($edit_plan["endTime"]));
-  $edit_plan["deadline_date"] = idate("d", strtotime($edit_plan["deadlineDate"]));
-  $edit_plan["deadline_hour"] = idate("H", strtotime($edit_plan["deadlineTime"]));
-  $edit_plan["deadline_minute"] = date("i", strtotime($edit_plan["deadlineTime"]));
+} else {
+  //編集でないとき
+  $edit_plan["startDate"] = date("Y-m-d");
+  $edit_plan["startTime"] = "10:00";
+  $edit_plan["endDate"] = date("Y-m-d");
+  $edit_plan["endTime"] = "11:00";
+  $edit_plan["deadlineDate"] = date("Y-m-d");
+  $edit_plan["deadlineTime"] = "23:59";
 }
 
 //予定作成フォームの分のリスト
-$minutes_list =  array("00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55");
+// $minutes_list =  array("00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55");
 
 ?>
 <!DOCTYPE html>
@@ -332,6 +324,9 @@ $minutes_list =  array("00", "05", "10", "15", "20", "25", "30", "35", "40", "45
   input[type=submit] {
     width: 100%;
   }
+  textarea {
+    width: 100%;
+  }
 </style>
 
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
@@ -363,10 +358,13 @@ $minutes_list =  array("00", "05", "10", "15", "20", "25", "30", "35", "40", "45
   }
 
   function day_display(i) { //カレンダーの日付の数字を押したとき、予定作成フォームを表示し、日付のフォームの値に選択した日付を入れる
+    //iには年月日が入る
+    // console.log(i);
     const content = document.getElementById("new_plan");
     const btn = document.getElementById("new_plan_open");
-    const day = document.getElementById("start_date");
-    const day2 = document.getElementById("end_date");
+    const date = document.getElementById("startDate");
+    const date2 = document.getElementById("endDate");
+    const date3 = document.getElementById("deadlineDate");
     const id = document.getElementById("hidden_id");
     const event = document.getElementById("form_event");
     const company = document.getElementById("form_company");
@@ -376,16 +374,18 @@ $minutes_list =  array("00", "05", "10", "15", "20", "25", "30", "35", "40", "45
       content.style.display = "block";
       btn.value = "非表示";
     }
-    //day.options[i].selected = true;
-    //day2.options[i].selected = true;
-    day.value = i;
-    day2.value = i;
+    // console.log(date);
+    date.value = i;
+    date2.value = i;
+    date3.value = i;
     id.value = "";
     event.value = "";
     for (var k = 0; k < company.length; k++) {
       company.options[k].selected = false;
     }
-    console.log(day.value);
+
+    location.href = "#new_plan";
+    // console.log(date.value);
   }
 
   function display_create_company_form() { //新しく会社を作成するボタンを押したとき、会社登録フォームを表示する
@@ -441,7 +441,8 @@ $minutes_list =  array("00", "05", "10", "15", "20", "25", "30", "35", "40", "45
   </header>
   <?php //echo $edit_plan["id"]; ?>
   <h1>カレンダー</h1>
-  <h2><?php echo $year; ?>年<?php echo $month; ?>月</h2>
+  <?php $monthDisplay = intval($month); ?>
+  <h2><?php echo $year; ?>年<?php echo $monthDisplay; ?>月</h2>
 
   <?php //var_dump($companies) ?>
 
@@ -474,35 +475,24 @@ $minutes_list =  array("00", "05", "10", "15", "20", "25", "30", "35", "40", "45
         <tr class="row-calender">
           <?php $cnt = 0; ?>
           <?php foreach ($calendar as $key => $value): ?>
-            <td class="col-calendar" data-date="<?php echo $value["day"]; ?>" onclick="day_display('<?php echo $value["day"]; ?>')">
+            <td class="col-calendar" data-date="<?php echo $value["day"]; ?>" onclick="day_display('<?php echo "{$year}-{$month}-{$value['day']}"; ?>')">
               <?php
               $cnt++;
               if (!empty($value["day"])):
                 //日付を書き込む
                 //echo "<button type='button' class='date' onclick=day_display(".$value["day"].")>";
-                echo "<p class='table-date'>{$value['day']}</p>";
+                $dateDisplay = intval($value["day"]);
+                echo "<p class='table-date'>{$dateDisplay}</p>";
                 //echo "</button>";
 
                 //予定を書き込む
                 foreach ($plans as $key => $plan):
-                  if ($month < 10) {
-                    if ($value["day"] < 10) {
-                      $startDate = "{$year}-0{$month}-0{$value['day']}";
-                    } else {
-                      $startDate = "{$year}-0{$month}-{$value['day']}";
-                    }
-                  } else {
-                    if ($value["day"] < 10) {
-                      $startDate = "{$year}-{$month}-0{$value['day']}";
-                    } else {
-                      $startDate = "{$year}-{$month}-{$value['day']}";
-                    }
-                  }
+                  $startDate = "{$year}-{$month}-{$value['day']}";
 
                   //echo $startDate;
                   if ($plan["startDate"] === $startDate):
                   ?>
-                  <form class="" action="" method="post">
+                  <form class="" action="#new_plan" method="post">
                     <input type="hidden" name="plans_id" value="<?php echo $plan["id"]; ?>">
                     <input type="hidden" name="year" value="<?php echo $year; ?>">
                     <input type="hidden" name="month" value="<?php echo $month; ?>">
@@ -517,7 +507,7 @@ $minutes_list =  array("00", "05", "10", "15", "20", "25", "30", "35", "40", "45
                     </button>
                   </form>
                   <?php
-                endif;
+                  endif;
                 endforeach;
               endif;
               ?>
@@ -532,9 +522,11 @@ $minutes_list =  array("00", "05", "10", "15", "20", "25", "30", "35", "40", "45
       </table>
 
       <div class="col-lg-3 col-md-12 col-sm-12 col-xs-12 side">
+
         <input type="button" class="btn btn-dark m-2" id="new_plan_open" value="予定の作成" onclick="new_display()">
 
         <div id="new_plan">
+
           <p class="m-2">
             <?php if (!empty($edit_plan["id"])) {
               echo "予定の編集：";
@@ -543,164 +535,70 @@ $minutes_list =  array("00", "05", "10", "15", "20", "25", "30", "35", "40", "45
             }
             ?>
           </p>
-          <form class="" action="" method="post">
+
+          <form class="" action="./" method="post">
+
             <p class="m-2">
-              イベント
-              <input type="text" id="form_event" name="event" value="<?php echo $edit_plan["event"]; ?>" placeholder="タイトルを入力">
+              <label>
+                イベント
+                <input type="text" id="form_event" name="event" value="<?php echo $edit_plan["event"]; ?>" placeholder="タイトルを入力" required>
+              </label>
             </p>
+
             <p class="m-2">
-              会社名・部署名
-              <select class="" name="companies_id" id="form_company">
-                <option value=''>選択してください</option>
-                <?php
-                foreach ($companies as $value) {
-                  //会社の数だけプルダウンを作る
-                  echo "<option value='".$value["id"]."'";
-                  if ($edit_plan["companies_id"] == $value["id"]) {
-                    echo " selected";
+              <label>
+                会社名・部署名
+                <select class="" name="companies_id" id="form_company">
+                  <option value=''>選択してください</option>
+                  <?php
+                  foreach ($companies as $value) {
+                    //会社の数だけプルダウンを作る
+                    echo "<option value='".$value["id"]."'";
+                    if ($edit_plan["companies_id"] == $value["id"]) {
+                      echo " selected";
+                    }
+                    if ($companies_id == $value["id"]) {
+                      echo " selected";
+                    }
+                    echo ">".$value["name"]." ".$value["occupation"]."</option>";
                   }
-                  if ($companies_id == $value["id"]) {
-                    echo " selected";
-                  }
-                  echo ">".$value["name"]." ".$value["occupation"]."</option>";
-                }
-                ?>
-              </select>
+                  ?>
+                </select>
+              </label>
               <button type="button" class="btn btn-success" id="button_create_company_form" onclick="display_create_company_form()">新しく会社を追加する</button>
             </p>
+
             <p class="m-2" id="create_company">
               会社の作成
               <input type="text" id="company_name" name="new_company" value="" placeholder="会社名">
               <input type="text" name="new_occupation" value="" placeholder="部署名">
               <input type="submit" class="btn btn-success m-2" name="company_btn" value="新規作成" onclick="return create_company()">
             </p>
+
             <div class="container m-2" style="padding: 0">
               <div class="row">
                 <div class="my-1 col-lg-12 col-md-2 col-sm-12 col-xs-12">
                   開始日時
                 </div>
                 <div class="my-1 col-lg-12 col-md-5 col-sm-6 col-xs-12">
-                  <?php
-                  echo "<select id='start_year' name='start_year' >"; //年の部分
-                  for ($year_index = $year - 2; $year_index <= $year + 10; $year_index++) {
-                    echo "<option value='".$year_index."'";
-                    if ($year_index == $year) {
-                      echo " selected";
-                    }
-                    echo ">".$year_index."</option>";
-                  }
-                  echo "</select>";
-                  echo "年";
-                  echo "<select id='start_month' name='start_month'>"; //月の部分
-                  for ($month_index = 1; $month_index <= 12; $month_index++) {
-                    echo "<option value='".$month_index."'";
-                    if ($month_index == $month) {
-                      echo " selected";
-                    }
-                    echo ">".$month_index."</option>";
-                  }
-                  echo "</select>";
-                  echo "月";
-                  echo "<select id='start_date' name='start_date'>"; //日の部分
-                  for ($day_index = 1; $day_index <= 31 ; $day_index++) {
-                    echo "<option value='".$day_index."'";
-                    if ($edit_plan["start_date"] == $day_index) {
-                      echo " selected";
-                    }
-                    echo ">".$day_index."</option>";
-                  }
-                  echo "</select>";
-                  echo "日";
-                  ?>
+                  <input id="startDate" type="date" name="startDate" value="<?php echo $edit_plan['startDate']; ?>">
                 </div>
                 <div class="my-1 col-lg-12 col-md-4 col-sm-4 col-xs-12">
-                  <?php
-                  echo "<select id='start_hour' name='start_hour'>"; //時の部分
-                  for ($hour_index = 0; $hour_index < 24 ; $hour_index++) {
-                    echo "<option value='".$hour_index."'";
-                    if ($edit_plan["start_hour"] == $hour_index) {
-                      echo " selected";
-                    }
-                    echo ">".$hour_index."</option>";
-                  }
-                  echo "</select>";
-                  echo "時";
-                  echo "<select id='start_minute' name='start_minute'>"; //分の部分、リスト参照
-                  foreach ($minutes_list as $value) {
-                    echo "<option value='".$value."'";
-                    if ($edit_plan["start_minute"] == $value) {
-                      echo " selected";
-                    }
-                    echo ">".$value."</option>";
-                  }
-                  echo "</select>";
-                  echo "分";
-                  ?>
+                  <input id="startTime" type="time" name="startTime" value="<?php echo $edit_plan['startTime']; ?>">
                 </div>
               </div>
             </div>
+
             <div class="container m-2" style="padding: 0">
               <div class="row">
                 <div class="my-1 col-lg-12 col-md-2 col-sm-12 col-xs-12">
                   終了日時
                 </div>
                 <div class="my-1 col-lg-12 col-md-5 col-sm-6 col-xs-12">
-                  <?php
-                  echo "<select id='end_year' name='end_year'>"; //年の部分
-                  for ($year_index = $year - 2; $year_index <= $year + 10; $year_index++) {
-                    echo "<option value='".$year_index."'";
-                    if ($year_index == $year) {
-                      echo " selected";
-                    }
-                    echo ">".$year_index."</option>";
-                  }
-                  echo "</select>";
-                  echo "年";
-                  echo "<select id='end_month' name='end_month'>"; //月の部分
-                  for ($month_index = 1; $month_index <= 12; $month_index++) {
-                    echo "<option value='".$month_index."'";
-                    if ($month_index == $month) {
-                      echo " selected";
-                    }
-                    echo ">".$month_index."</option>";
-                  }
-                  echo "</select>";
-                  echo "月";
-                  echo "<select id='end_date' name='end_date'>"; //日の部分
-                  for ($day_index = 1; $day_index <= 31 ; $day_index++) {
-                    echo "<option value='".$day_index."'";
-                    if ($edit_plan["end_date"] == $day_index) {
-                      echo " selected";
-                    }
-                    echo ">".$day_index."</option>";
-                  }
-                  echo "</select>";
-                  echo "日";
-                  ?>
+                  <input id="endDate" type="date" name="endDate" value="<?php echo $edit_plan["endDate"]; ?>">
                 </div>
                 <div class="my-1 col-lg-12 col-md-4 col-sm-4 col-xs-12">
-                  <?php
-                  echo "<select id='end_hour' name='end_hour'>"; //時の部分
-                  for ($hour_index = 0; $hour_index < 24 ; $hour_index++) {
-                    echo "<option value='".$hour_index."'";
-                    if ($edit_plan["end_hour"] == $hour_index) {
-                      echo " selected";
-                    }
-                    echo ">".$hour_index."</option>";
-                  }
-                  echo "</select>";
-                  echo "時";
-                  echo "<select id='end_minute' name='end_minute'>"; //分の部分、リスト参照
-                  foreach ($minutes_list as $value) {
-                    echo "<option value='".$value."'";
-                    if ($edit_plan["end_minute"] == $value) {
-                      echo " selected";
-                    }
-                    echo ">".$value."</option>";
-                  }
-                  echo "</select>";
-                  echo "分";
-                  ?>
+                  <input id="endTime" type="time" name="endTime" value="<?php echo $edit_plan['endTime']; ?>">
                 </div>
               </div>
             </div>
@@ -719,47 +617,10 @@ $minutes_list =  array("00", "05", "10", "15", "20", "25", "30", "35", "40", "45
                   締切日時
                 </div>
                 <div class="my-1 col-lg-12 col-md-5 col-sm-6 col-xs-12">
-                  <?php
-                  echo "<select id='deadline_year' name='deadline_year' disabled>"; //年の部分
-                  echo "<option value=''></option>";
-                  for ($year_index = $year - 2; $year_index <= $year + 10; $year_index++) {
-                    echo "<option value='{$year_index}'>{$year_index}</option>";
-                  }
-                  echo "</select>";
-                  echo "年";
-                  echo "<select id='deadline_month' name='deadline_month' disabled>"; //月の部分
-                  echo "<option value=''></option>";
-                  for ($month_index = 1; $month_index <= 12; $month_index++) {
-                    echo "<option value='{$month_index}'>{$month_index}</option>";
-                  }
-                  echo "</select>";
-                  echo "月";
-                  echo "<select id='deadline_date' name='deadline_date' disabled>"; //日の部分
-                  echo "<option value=''></option>";
-                  for ($day_index = 1; $day_index <= 31 ; $day_index++) {
-                    echo "<option value='{$day_index}'>{$day_index}</option>";
-                  }
-                  echo "</select>";
-                  echo "日";
-                  ?>
+                  <input id="deadlineDate" type="date" name="deadlineDate" value="<?php echo $edit_plan['deadlineDate']; ?>" disabled>
                 </div>
                 <div class="my-1 col-lg-12 col-md-4 col-sm-4 col-xs-12">
-                  <?php
-                  echo "<select id='deadline_hour' name='deadline_hour' disabled>"; //時の部分
-                  echo "<option value=''></option>";
-                  for ($hour_index = 0; $hour_index < 24 ; $hour_index++) {
-                    echo "<option value='{$hour_index}'>{$hour_index}</option>";
-                  }
-                  echo "</select>";
-                  echo "時";
-                  echo "<select id='deadline_minute' name='deadline_minute' disabled>"; //分の部分、リスト参照
-                  echo "<option value=''></option>";
-                  foreach ($minutes_list as $value) {
-                    echo "<option value='{$value}'>{$value}</option>";
-                  }
-                  echo "</select>";
-                  echo "分";
-                  ?>
+                  <input id="deadlineTime" type="time" name="deadlineTime" value="<?php echo $edit_plan['deadlineTime']; ?>" disabled>
                 </div>
               </div>
             </div>
@@ -773,8 +634,10 @@ $minutes_list =  array("00", "05", "10", "15", "20", "25", "30", "35", "40", "45
             </div>
 
             <p class="m-2">
-              詳細
-              <input type="text" name="detail" value="">
+              <label>
+                詳細
+                <textarea name="detail" rows="3"><?php echo $edit_plan["detail"]; ?></textarea>
+              </label>
 
               <!-- 編集のとき、plansのidを保存しておく -->
               <input type="hidden" id="hidden_id" name="edit_plans_id" value="<?php echo $edit_plan["id"]; ?>">
@@ -800,7 +663,7 @@ $minutes_list =  array("00", "05", "10", "15", "20", "25", "30", "35", "40", "45
 <script type="text/javascript">
 
 <?php
-if (!empty($edit_plan)) {
+if (!empty($edit_plan["id"])) {
   ?>
   edit_display();
   <?php
@@ -813,61 +676,38 @@ check2 = document.getElementById("checkbox2");
 check.addEventListener("change", (e) => {
   if (check.checked) {
     //開始日時・終了日時をdisabledにし、締切日時を操作可能に
-    document.getElementById("start_year").disabled = true;
-    document.getElementById("start_month").disabled = true;
-    document.getElementById("start_date").disabled = true;
-    document.getElementById("start_hour").disabled = true;
-    document.getElementById("start_minute").disabled = true;
+    document.getElementById("startDate").disabled = true;
+    document.getElementById("startTime").disabled = true;
 
-    document.getElementById("end_year").disabled = true;
-    document.getElementById("end_month").disabled = true;
-    document.getElementById("end_date").disabled = true;
-    document.getElementById("end_hour").disabled = true;
-    document.getElementById("end_minute").disabled = true;
+    document.getElementById("endDate").disabled = true;
+    document.getElementById("endTime").disabled = true;
 
-    document.getElementById("deadline_year").disabled = false;
-    document.getElementById("deadline_month").disabled = false;
-    document.getElementById("deadline_date").disabled = false;
-    document.getElementById("deadline_hour").disabled = false;
-    document.getElementById("deadline_minute").disabled = false;
+    document.getElementById("deadlineDate").disabled = false;
+    document.getElementById("deadlineTime").disabled = false;
 
     check2.disabled = false;
   } else {
-    document.getElementById("start_year").disabled = false;
-    document.getElementById("start_month").disabled = false;
-    document.getElementById("start_date").disabled = false;
-    document.getElementById("start_hour").disabled = false;
-    document.getElementById("start_minute").disabled = false;
+    document.getElementById("startDate").disabled = false;
+    document.getElementById("startTime").disabled = false;
 
-    document.getElementById("end_year").disabled = false;
-    document.getElementById("end_month").disabled = false;
-    document.getElementById("end_date").disabled = false;
-    document.getElementById("end_hour").disabled = false;
-    document.getElementById("end_minute").disabled = false;
+    document.getElementById("endDate").disabled = false;
+    document.getElementById("endTime").disabled = false;
 
-    document.getElementById("deadline_year").disabled = true;
-    document.getElementById("deadline_month").disabled = true;
-    document.getElementById("deadline_date").disabled = true;
-    document.getElementById("deadline_hour").disabled = true;
-    document.getElementById("deadline_minute").disabled = true;
+    document.getElementById("deadlineDate").disabled = true;
+    document.getElementById("deadlineTime").disabled = true;
 
-    check2.disabled = false;
+    check2.disabled = true;
+    check2.checked = false;
   }
 });
 
 check2.addEventListener("change", (e) => {
   if (check2.checked) {
-    document.getElementById("deadline_year").disabled = true;
-    document.getElementById("deadline_month").disabled = true;
-    document.getElementById("deadline_date").disabled = true;
-    document.getElementById("deadline_hour").disabled = true;
-    document.getElementById("deadline_minute").disabled = true;
+    document.getElementById("deadlineDate").disabled = true;
+    document.getElementById("deadlineTime").disabled = true;
   } else if (check.checked) {
-    document.getElementById("deadline_year").disabled = false;
-    document.getElementById("deadline_month").disabled = false;
-    document.getElementById("deadline_date").disabled = false;
-    document.getElementById("deadline_hour").disabled = false;
-    document.getElementById("deadline_minute").disabled = false;
+    document.getElementById("deadlineDate").disabled = false;
+    document.getElementById("deadlineTime").disabled = false;
   }
 });
 </script>

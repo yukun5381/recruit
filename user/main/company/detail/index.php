@@ -41,17 +41,17 @@ if(!empty($_POST["add_company_btn"])){
       $deadlineTime = null;
       $completed = "0";
 
-      if (!empty($_POST["start_year"][$index])) {
-        $startDate = "{$_POST['start_year'][$index]}-{$_POST['start_month'][$index]}-{$_POST['start_date'][$index]}";
-        $startTime = "{$_POST['start_hour'][$index]}:{$_POST['start_minute'][$index]}:00";
+      if (!empty($_POST["startDate"][$index])) {
+        $startDate = $_POST["startDate"][$index];
+        $startTime = $_POST["startTime"][$index];
       }
-      if (!empty($_POST["end_year"][$index])) {
-        $endDate = "{$_POST['end_year'][$index]}-{$_POST['end_month'][$index]}-{$_POST['end_date'][$index]}";
-        $endTime = "{$_POST['end_hour'][$index]}:{$_POST['end_minute'][$index]}:00";
+      if (!empty($_POST["endDate"][$index])) {
+        $endDate = $_POST["endDate"][$index];
+        $endTime = $_POST["endTime"][$index];
       }
-      if (!empty($_POST["deadline_year"][$index])) {
-        $deadlineDate = "{$_POST['deadline_year'][$index]}-{$_POST['deadline_month'][$index]}-{$_POST['deadline_date'][$index]}";
-        $deadlineTime = "{$_POST['deadline_hour'][$index]}:{$_POST['deadline_minute'][$index]}:00";
+      if (!empty($_POST["deadlineDate"][$index])) {
+        $deadlineDate = $_POST["deadlineDate"][$index];
+        $deadlineTime = $_POST["deadlineTime"][$index];
       }
       if (!empty($_POST["completed"][$index])) {
         $completed = "1";
@@ -92,7 +92,7 @@ $plans = $sql -> fetchAll();
 //var_dump($_POST);
 // var_dump($plans);
 
-$minutes_list =  array("00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55");
+// $minutes_list =  array("00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55");
 
 //var_dump($_POST);
 ?>
@@ -138,7 +138,9 @@ td {
   margin-right: auto;
   margin-left: auto;
 }
-
+input[type=checkbox] {
+  transform: scale(1.5);
+}
 </style>
 
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
@@ -150,43 +152,25 @@ td {
     <?php foreach ($plans as $plan): ?>
     <?php
     if (!empty($plan["startDate"])) {
-      $start_year = date("Y", strtotime($plan["startDate"]));
-      $start_month = idate("m", strtotime($plan["startDate"]));
-      $start_date = idate("d", strtotime($plan["startDate"]));
-      $start_hour = idate("H", strtotime($plan["startTime"]));
-      $start_minute = date("i", strtotime($plan["startTime"]));
+      $startDate = $plan["startDate"];
+      $startTime = $plan["startTime"];
     } else {
-      $start_year = "";
-      $start_month = "";
-      $start_date = "";
-      $start_hour = "";
-      $start_minute = "";
+      $startDate = "";
+      $startTime = "";
     }
     if (!empty($plan["endDate"])) {
-      $end_year = date("Y", strtotime($plan["endDate"]));
-      $end_month = idate("m", strtotime($plan["endDate"]));
-      $end_date = idate("d", strtotime($plan["endDate"]));
-      $end_hour = idate("H", strtotime($plan["endTime"]));
-      $end_minute = date("i", strtotime($plan["endTime"]));
+      $endDate = $plan["endDate"];
+      $endTime = $plan["endTime"];
     } else {
-      $end_year = "";
-      $end_month = "";
-      $end_date = "";
-      $end_hour = "";
-      $end_minute = "";
+      $endDate = "";
+      $endTime = "";
     }
     if (!empty($plan["deadlineDate"])) {
-      $deadline_year = date("Y", strtotime($plan["deadlineDate"]));
-      $deadline_month = idate("m", strtotime($plan["deadlineDate"]));
-      $deadline_date = idate("d", strtotime($plan["deadlineDate"]));
-      $deadline_hour = idate("H", strtotime($plan["deadlineTime"]));
-      $deadline_minute = date("i", strtotime($plan["deadlineTime"]));
+      $deadlineDate = $plan["deadlineDate"];
+      $deadlineTime = $plan["deadlineTime"];
     } else {
-      $deadline_year = "";
-      $deadline_month = "";
-      $deadline_date = "";
-      $deadline_hour = "";
-      $deadline_minute = "";
+      $deadlineDate = "";
+      $deadlineTime = "";
     }
     if (!empty($plan["completed"])) {
       $completed = "1";
@@ -197,24 +181,15 @@ td {
     //set_eventで使う変数の宣言
     var event = '<?php echo $plan["event"]; ?>';
     // console.log(event);
-    var start_year = '<?php echo $start_year; ?>';
-    var start_month = '<?php echo $start_month; ?>';
-    var start_date = '<?php echo $start_date; ?>';
-    var start_hour = '<?php echo $start_hour; ?>';
-    var start_minute = '<?php echo $start_minute; ?>';
-    var end_year = '<?php echo $end_year; ?>';
-    var end_month = '<?php echo $end_month; ?>';
-    var end_date = '<?php echo $end_date; ?>';
-    var end_hour = '<?php echo $end_hour; ?>';
-    var end_minute = '<?php echo $end_minute; ?>';
-    var deadline_year = '<?php echo $deadline_year; ?>';
-    var deadline_month = '<?php echo $deadline_month; ?>';
-    var deadline_date = '<?php echo $deadline_date; ?>';
-    var deadline_hour = '<?php echo $deadline_hour; ?>';
-    var deadline_minute = '<?php echo $deadline_minute; ?>';
+    var startDate = '<?php echo $startDate; ?>';
+    var startTime = '<?php echo $startTime; ?>';
+    var endDate = '<?php echo $endDate; ?>';
+    var endTime = '<?php echo $endTime; ?>';
+    var deadlineDate = '<?php echo $deadlineDate; ?>';
+    var deadlineTime = '<?php echo $deadlineTime; ?>';
     var completed = '<?php echo $completed; ?>';
     //ページを開いたとき、予定をフォームに記入した状態にする
-    set_event(event, start_year, start_month, start_date, start_hour, start_minute, end_year, end_month, end_date, end_hour, end_minute, deadline_year, deadline_month, deadline_date, deadline_hour, deadline_minute, completed);
+    set_event(event, startDate, startTime, endDate, endTime, deadlineDate, deadlineTime, completed);
 
     <?php endforeach; ?>
   }
@@ -281,134 +256,14 @@ td {
 
         <div class="m-2">
           開始日時
-          <select class="" name="start_year[0]">
-            <?php
-            for ($year_index = $year-2; $year_index < $year+10; $year_index++) {
-              echo "<option value=".$year_index;
-              if ($year_index == $year) {
-                echo " selected";
-              }
-              echo ">";
-              echo $year_index;
-              echo "</option>";
-            }
-            ?>
-          </select>
-          年
-          <select class="" name="start_month[0]">
-            <?php
-            for ($month_index = 1; $month_index <= 12; $month_index++) {
-              echo "<option value=".$month_index;
-              if ($month_index == $month) {
-                echo " selected";
-              }
-              echo ">";
-              echo $month_index;
-              echo "</option>";
-            }
-            ?>
-          </select>
-          月
-          <select class="" name="start_date[0]">
-            <?php
-            for ($date_index = 1; $date_index <= 31; $date_index++) {
-              echo "<option value=".$date_index;
-              if ($date_index == $date) {
-                echo " selected";
-              }
-              echo ">";
-              echo $date_index;
-              echo "</option>";
-            }
-            ?>
-          </select>
-          日
-          <select class="" name="start_hour[0]">
-            <?php
-            for ($hour_index = 0; $hour_index <= 23; $hour_index++) {
-              echo "<option value=".$hour_index.">";
-              echo $hour_index;
-              echo "</option>";
-            }
-            ?>
-          </select>
-          時
-          <select class="" name="start_minute[0]">
-            <?php
-            foreach ($minutes_list as $value) {
-              echo "<option value=".$value.">";
-              echo $value;
-              echo "</option>";
-            }
-            ?>
-          </select>
-          分
+          <input type="date" name="startDate[0]">
+          <input type="time" name="startTime[0]">
         </div>
 
         <div class="m-2">
           終了日時
-          <select class="" name="end_year[0]">
-            <?php
-            for ($year_index = $year-2; $year_index < $year+10; $year_index++) {
-              echo "<option value=".$year_index;
-              if ($year_index == $year) {
-                echo " selected";
-              }
-              echo ">";
-              echo $year_index;
-              echo "</option>";
-            }
-            ?>
-          </select>
-          年
-          <select class="" name="end_month[0]">
-            <?php
-            for ($month_index = 1; $month_index <= 12; $month_index++) {
-              echo "<option value=".$month_index;
-              if ($month_index == $month) {
-                echo " selected";
-              }
-              echo ">";
-              echo $month_index;
-              echo "</option>";
-            }
-            ?>
-          </select>
-          月
-          <select class="" name="end_date[0]">
-            <?php
-            for ($date_index = 1; $date_index <= 31; $date_index++) {
-              echo "<option value=".$date_index;
-              if ($date_index == $date) {
-                echo " selected";
-              }
-              echo ">";
-              echo $date_index;
-              echo "</option>";
-            }
-            ?>
-          </select>
-          日
-          <select class="" name="end_hour[0]">
-            <?php
-            for ($hour_index = 0; $hour_index <= 23; $hour_index++) {
-              echo "<option value=".$hour_index.">";
-              echo $hour_index;
-              echo "</option>";
-            }
-            ?>
-          </select>
-          時
-          <select class="" name="end_minute[0]">
-            <?php
-            foreach ($minutes_list as $value) {
-              echo "<option value=".$value.">";
-              echo $value;
-              echo "</option>";
-            }
-            ?>
-          </select>
-          分
+          <input type="date" name="endDate[0]">
+          <input type="time" name="endTime[0]">
         </div>
 
         <div class="m-2">
@@ -417,51 +272,8 @@ td {
 
         <div class="m-2">
           締切日時
-          <select class="" name="deadline_year[0]" disabled>
-            <?php
-            echo "<option value=''></option>";
-            for ($year_index = $year - 2; $year_index <= $year + 10; $year_index++) {
-              echo "<option value='{$year_index}'>{$year_index}</option>";
-            }
-            ?>
-          </select>
-          年
-          <select class="" name="deadline_month[0]" disabled>
-            <?php
-            echo "<option value=''></option>";
-            for ($month_index = 1; $month_index <= 12; $month_index++) {
-              echo "<option value='{$month_index}'>{$month_index}</option>";
-            }
-            ?>
-          </select>
-          月
-          <select class="" name="deadline_date[0]" disabled>
-            <?php
-            echo "<option value=''></option>";
-            for ($day_index = 1; $day_index <= 31 ; $day_index++) {
-              echo "<option value='{$day_index}'>{$day_index}</option>";
-            }
-            ?>
-          </select>
-          日
-          <select class="" name="deadline_hour[0]" disabled>
-            <?php
-            echo "<option value=''></option>";
-            for ($hour_index = 0; $hour_index < 24 ; $hour_index++) {
-              echo "<option value='{$hour_index}'>{$hour_index}</option>";
-            }
-            ?>
-          </select>
-          時
-          <select class="" name="deadline_minute[0]" disabled>
-            <?php
-            echo "<option value=''></option>";
-            foreach ($minutes_list as $value) {
-              echo "<option value='{$value}'>{$value}</option>";
-            }
-            ?>
-          </select>
-          分
+          <input type="date" name="deadlineDate[0]" disabled>
+          <input type="time" name="deadlineTime[0]" disabled>
         </div>
 
         <div class="m-2">
@@ -512,9 +324,9 @@ td {
     let dummy = document.getElementById("event_form_dummy");
     const clone = dummy.cloneNode(true);
     const form_num = forms.childElementCount;
-    const max = 10;
+    const max = 20;
     if (form_num < max) {
-      //予定の数は1社につき10個まで
+      //予定の数は1社につき20個まで
       clone.id = "event_form_dummy" + i;
       clone.style.display = "block";
 
@@ -528,28 +340,20 @@ td {
       completedCheck = clone.children[7];
       remove = clone.children[8];
 
+      eventName.children["event[0]"].required = true;
       eventName.children["event[0]"].name = "event["+ i +"]";
 
-      start.children["start_year[0]"].name = "start_year["+ i +"]";
-      start.children["start_month[0]"].name = "start_month["+ i +"]";
-      start.children["start_date[0]"].name = "start_date["+ i +"]";
-      start.children["start_hour[0]"].name = "start_hour["+ i +"]";
-      start.children["start_minute[0]"].name = "start_minute["+ i +"]";
+      start.getElementsByTagName("input")[0].name = "startDate["+ i +"]";
+      start.getElementsByTagName("input")[1].name = "startTime["+ i +"]";
 
-      end.children["end_year[0]"].name = "end_year["+ i +"]";
-      end.children["end_month[0]"].name = "end_month["+ i +"]";
-      end.children["end_date[0]"].name = "end_date["+ i +"]";
-      end.children["end_hour[0]"].name = "end_hour["+ i +"]";
-      end.children["end_minute[0]"].name = "end_minute["+ i +"]";
+      end.getElementsByTagName("input")[0].name = "endDate["+ i +"]";
+      end.getElementsByTagName("input")[1].name = "endTime["+ i +"]";
 
       // clone.children[3].getElementsByTagName("input")[0].name = "deadline["+ i +"]";
       check.getElementsByTagName("input")[0].dataset.index = i;
 
-      deadline.children["deadline_year[0]"].name = "deadline_year["+ i +"]";
-      deadline.children["deadline_month[0]"].name = "deadline_month["+ i +"]";
-      deadline.children["deadline_date[0]"].name = "deadline_date["+ i +"]";
-      deadline.children["deadline_hour[0]"].name = "deadline_hour["+ i +"]";
-      deadline.children["deadline_minute[0]"].name = "deadline_minute["+ i +"]";
+      deadline.getElementsByTagName("input")[0].name = "deadlineDate["+ i +"]";
+      deadline.getElementsByTagName("input")[1].name = "deadlineTime["+ i +"]";
 
       // clone.children[5].getElementsByTagName("input")[0].name = "undecided["+ i +"]";
       undecided.getElementsByTagName("input")[0].dataset.index = i;
@@ -566,14 +370,17 @@ td {
       const index = document.getElementById("index");
       index.value = i;
       i++;
+      location.href = "#add_event_form_btn";
+
     } else {
       alert("登録できるイベントの数は1社につき" + max + "個までです");
     }
 
   }
 
-  function set_event(event, start_year, start_month, start_date, start_hour, start_minute, end_year, end_month, end_date, end_hour, end_minute, deadline_year, deadline_month, deadline_date, deadline_hour, deadline_minute, completed) { //ページを開いたときにイベントフォームが読み込まれる
+  function set_event(event, startDate, startTime, endDate, endTime, deadlineDate, deadlineTime, completed) { //ページを開いたときにイベントフォームが読み込まれる
     // console.log(completed);
+    //関数の引数を変える
     let forms = document.getElementById("event_form");
     let dummy = document.getElementById("event_form_dummy");
     const clone = dummy.cloneNode(true);
@@ -591,77 +398,48 @@ td {
     remove = clone.children[8];
 
     eventName.children["event[0]"].value = event;
+    eventName.children["event[0]"].required = true;
     eventName.children["event[0]"].name = "event["+ i +"]";
 
-    if (!start_year) {
-      start.children["start_year[0]"].disabled = true;
-      start.children["start_month[0]"].disabled = true;
-      start.children["start_date[0]"].disabled = true;
-      start.children["start_hour[0]"].disabled = true;
-      start.children["start_minute[0]"].disabled = true;
+    if (!startDate) {
+      start.getElementsByTagName("input")[0].disabled = true;
+      start.getElementsByTagName("input")[1].disabled = true;
       check.getElementsByTagName("input")[0].checked = true;
       undecided.getElementsByTagName("input")[0].disabled = false;
     }
 
-    start.children["start_year[0]"].value = start_year;
-    start.children["start_year[0]"].name = "start_year["+ i +"]";
-    start.children["start_month[0]"].value = start_month;
-    start.children["start_month[0]"].name = "start_month["+ i +"]";
-    start.children["start_date[0]"].value = start_date;
-    start.children["start_date[0]"].name = "start_date["+ i +"]";
-    start.children["start_hour[0]"].value = start_hour;
-    start.children["start_hour[0]"].name = "start_hour["+ i +"]";
-    start.children["start_minute[0]"].value = start_minute;
-    start.children["start_minute[0]"].name = "start_minute["+ i +"]";
+    start.getElementsByTagName("input")[0].value = startDate;
+    start.getElementsByTagName("input")[0].name = "startDate["+ i +"]";
+    start.getElementsByTagName("input")[1].value = startTime;
+    start.getElementsByTagName("input")[1].name = "startTime["+ i +"]";
 
-    if (!end_year) {
-      end.children["end_year[0]"].disabled = true;
-      end.children["end_month[0]"].disabled = true;
-      end.children["end_date[0]"].disabled = true;
-      end.children["end_hour[0]"].disabled = true;
-      end.children["end_minute[0]"].disabled = true;
+    if (!endDate) {
+      end.getElementsByTagName("input")[0].disabled = true;
+      end.getElementsByTagName("input")[1].disabled = true;
     }
 
-    end.children["end_year[0]"].value = end_year;
-    end.children["end_year[0]"].name = "end_year["+ i +"]";
-    end.children["end_month[0]"].value = end_month;
-    end.children["end_month[0]"].name = "end_month["+ i +"]";
-    end.children["end_date[0]"].value = end_date;
-    end.children["end_date[0]"].name = "end_date["+ i +"]";
-    end.children["end_hour[0]"].value = end_hour;
-    end.children["end_hour[0]"].name = "end_hour["+ i +"]";
-    end.children["end_minute[0]"].value = end_minute;
-    end.children["end_minute[0]"].name = "end_minute["+ i +"]";
+    end.getElementsByTagName("input")[0].value = endDate;
+    end.getElementsByTagName("input")[0].name = "endDate["+ i +"]";
+    end.getElementsByTagName("input")[1].value = endTime;
+    end.getElementsByTagName("input")[1].name = "endTime["+ i +"]";
 
     check.getElementsByTagName("input")[0].dataset.index = i;
 
-    if (!deadline_year) {
-      deadline.children["deadline_year[0]"].disabled = true;
-      deadline.children["deadline_month[0]"].disabled = true;
-      deadline.children["deadline_date[0]"].disabled = true;
-      deadline.children["deadline_hour[0]"].disabled = true;
-      deadline.children["deadline_minute[0]"].disabled = true;
-      if (!start_year) {
+    if (!deadlineDate) {
+      deadline.getElementsByTagName("input")[0].disabled = true;
+      deadline.getElementsByTagName("input")[1].disabled = true;
+      if (!startDate) {
         undecided.getElementsByTagName("input")[0].checked = true;
       }
     } else {
-      deadline.children["deadline_year[0]"].disabled = false;
-      deadline.children["deadline_month[0]"].disabled = false;
-      deadline.children["deadline_date[0]"].disabled = false;
-      deadline.children["deadline_hour[0]"].disabled = false;
-      deadline.children["deadline_minute[0]"].disabled = false;
+      deadline.getElementsByTagName("input")[0].disabled = false;
+      deadline.getElementsByTagName("input")[1].disabled = false;
     }
 
-    deadline.children["deadline_year[0]"].value = deadline_year;
-    deadline.children["deadline_year[0]"].name = "deadline_year["+ i +"]";
-    deadline.children["deadline_month[0]"].value = deadline_month;
-    deadline.children["deadline_month[0]"].name = "deadline_month["+ i +"]";
-    deadline.children["deadline_date[0]"].value = deadline_date;
-    deadline.children["deadline_date[0]"].name = "deadline_date["+ i +"]";
-    deadline.children["deadline_hour[0]"].value = deadline_hour;
-    deadline.children["deadline_hour[0]"].name = "deadline_hour["+ i +"]";
-    deadline.children["deadline_minute[0]"].value = deadline_minute;
-    deadline.children["deadline_minute[0]"].name = "deadline_minute["+ i +"]";
+    deadline.getElementsByTagName("input")[0].value = deadlineDate;
+    deadline.getElementsByTagName("input")[0].name = "deadlineDate["+ i +"]";
+    deadline.getElementsByTagName("input")[1].value = deadlineTime;
+    deadline.getElementsByTagName("input")[1].name = "deadlineTime["+ i +"]";
 
     undecided.getElementsByTagName("input")[0].dataset.index = i;
 
@@ -709,45 +487,28 @@ td {
 
     if (deadline.checked) {
       //開始日時・終了日時をdisabledにし、締切日時を操作可能に
-      document.getElementsByName("start_year[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("start_month[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("start_date[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("start_hour[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("start_minute[" + changedIndex + "]")[0].disabled = true;
+      document.getElementsByName("startDate[" + changedIndex + "]")[0].disabled = true;
+      document.getElementsByName("startTime[" + changedIndex + "]")[0].disabled = true;
 
-      document.getElementsByName("end_year[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("end_month[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("end_date[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("end_hour[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("end_minute[" + changedIndex + "]")[0].disabled = true;
+      document.getElementsByName("endDate[" + changedIndex + "]")[0].disabled = true;
+      document.getElementsByName("endTime[" + changedIndex + "]")[0].disabled = true;
 
-      document.getElementsByName("deadline_year[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("deadline_month[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("deadline_date[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("deadline_hour[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("deadline_minute[" + changedIndex + "]")[0].disabled = false;
+      document.getElementsByName("deadlineDate[" + changedIndex + "]")[0].disabled = false;
+      document.getElementsByName("deadlineTime[" + changedIndex + "]")[0].disabled = false;
 
       undecided.disabled = false;
     } else {
-      document.getElementsByName("start_year[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("start_month[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("start_date[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("start_hour[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("start_minute[" + changedIndex + "]")[0].disabled = false;
+      document.getElementsByName("startDate[" + changedIndex + "]")[0].disabled = false;
+      document.getElementsByName("startTime[" + changedIndex + "]")[0].disabled = false;
 
-      document.getElementsByName("end_year[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("end_month[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("end_date[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("end_hour[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("end_minute[" + changedIndex + "]")[0].disabled = false;
+      document.getElementsByName("endDate[" + changedIndex + "]")[0].disabled = false;
+      document.getElementsByName("endTime[" + changedIndex + "]")[0].disabled = false;
 
-      document.getElementsByName("deadline_year[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("deadline_month[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("deadline_date[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("deadline_hour[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("deadline_minute[" + changedIndex + "]")[0].disabled = true;
+      document.getElementsByName("deadlineDate[" + changedIndex + "]")[0].disabled = true;
+      document.getElementsByName("deadlineTime[" + changedIndex + "]")[0].disabled = true;
 
-      undecided.disabled = false;
+      undecided.disabled = true;
+      undecided.checked = false;
     }
 
   }
@@ -760,17 +521,11 @@ td {
     let deadline = form.children[3].getElementsByTagName("input")[0];
 
     if (undecided.checked) {
-      document.getElementsByName("deadline_year[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("deadline_month[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("deadline_date[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("deadline_hour[" + changedIndex + "]")[0].disabled = true;
-      document.getElementsByName("deadline_minute[" + changedIndex + "]")[0].disabled = true;
+      document.getElementsByName("deadlineDate[" + changedIndex + "]")[0].disabled = true;
+      document.getElementsByName("deadlineTime[" + changedIndex + "]")[0].disabled = true;
     } else if (deadline.checked) {
-      document.getElementsByName("deadline_year[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("deadline_month[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("deadline_date[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("deadline_hour[" + changedIndex + "]")[0].disabled = false;
-      document.getElementsByName("deadline_minute[" + changedIndex + "]")[0].disabled = false;
+      document.getElementsByName("deadlineDate[" + changedIndex + "]")[0].disabled = false;
+      document.getElementsByName("deadlineTime[" + changedIndex + "]")[0].disabled = false;
     }
 
   }
